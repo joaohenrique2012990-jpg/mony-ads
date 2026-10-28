@@ -11,7 +11,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { tools, categories, calcMetrics, buildUtm } from "@/lib/tools";
 
 export const Route = createFileRoute("/dashboard")({
-  validateSearch: (s: Record<string, unknown>): { tool?: string } => ({ tool: typeof s.tool === "string" ? s.tool : undefined }),
+  validateSearch: (s: Record<string, unknown>): { tool?: string } => ({ tool: typeof s["tool"] === "string" ? s["tool"] : undefined }),
   head: () => ({
     meta: [
       { title: "Painel — Mony Ads" },
@@ -118,7 +118,7 @@ function Field({ l, v, set, type = "text" }: { l: string; v: string; set: (s: st
 
 function Utm() {
   const [f, setF] = useState({ url: "", utm_source: "", utm_medium: "", utm_campaign: "", utm_term: "", utm_content: "" });
-  const { url, ...p } = f;
+  const { url, ...p } = f as Record<string, string>;
   const out = buildUtm(url, p);
   return (
     <div className={`${card} space-y-4`}>

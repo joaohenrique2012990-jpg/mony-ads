@@ -213,7 +213,7 @@ function Home() {
         <H2 k="FAQ" t="Perguntas frequentes" />
         <Accordion type="single" collapsible>
           {faq.map(([q, a]) => (
-            <AccordionItem key={q} value={q}><AccordionTrigger>{q}</AccordionTrigger><AccordionContent className="text-muted-foreground">{a}</AccordionContent></AccordionItem>
+            <AccordionItem key={q} value={q!}><AccordionTrigger>{q}</AccordionTrigger><AccordionContent className="text-muted-foreground">{a}</AccordionContent></AccordionItem>
           ))}
         </Accordion>
       </section>
