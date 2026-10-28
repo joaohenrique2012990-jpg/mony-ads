@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Toaster } from "@/components/ui/sonner";
 import { tools, categories, calcMetrics, buildUtm } from "@/lib/tools";
+import CatalogTool from "@/components/tools/CatalogTool";
 
 export const Route = createFileRoute("/dashboard")({
   validateSearch: (s: Record<string, unknown>): { tool?: string | undefined } => ({ tool: typeof s["tool"] === "string" ? s["tool"] : undefined }),
@@ -105,9 +106,9 @@ function Dashboard() {
 
 function ToolView({ id, back }: { id: string; back: () => void }) {
   return (
-    <div className="max-w-2xl">
+    <div className={id === "catalog" ? "w-full max-w-6xl" : "max-w-2xl"}>
       <Button variant="ghost" size="sm" onClick={back} className="mb-4">← Voltar</Button>
-      {id === "utm" ? <Utm /> : id === "calc" ? <Calc /> : <Empty t="Em desenvolvimento." />}
+      {id === "catalog" ? <CatalogTool /> : id === "utm" ? <Utm /> : id === "calc" ? <Calc /> : <Empty t="Em desenvolvimento." />}
     </div>
   );
 }
