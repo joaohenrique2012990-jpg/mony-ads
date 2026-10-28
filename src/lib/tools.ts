@@ -12,7 +12,7 @@ export const categories = ["Inteligência e mineração", "Criação com IA", "C
 const t = (id: string, name: string, desc: string, icon: LucideIcon, cat: number, status: ToolStatus = "soon"): Tool => ({ id, name, desc, icon, cat: categories[cat]!, status });
 
 export const tools: Tool[] = [
-  t("catalog", "Catálogo de ofertas", "Ofertas organizadas por país e nicho.", Search, 0, "ready"),
+  t("catalog", "Catálogo de ofertas Low Ticket", "Melhores ofertas validadas de alta margem no Facebook Ads.", Search, 0, "ready"),
   t("funnel", "Analisador de páginas e funis", "Entenda a estrutura de um funil.", FileSearch, 0),
   t("competitor", "Analisador de concorrentes", "Analise concorrentes a partir da URL.", Globe, 0),
   t("assistant", "Assistente de marketing", "Tire dúvidas e planeje com IA.", Bot, 0),
