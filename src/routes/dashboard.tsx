@@ -118,7 +118,7 @@ function Field({ l, v, set, type = "text" }: { l: string; v: string; set: (s: st
 
 function Utm() {
   const [f, setF] = useState({ url: "", utm_source: "", utm_medium: "", utm_campaign: "", utm_term: "", utm_content: "" });
-  const { url, ...p } = f as Record<string, string>;
+  const { url, ...p } = f;
   const out = buildUtm(url, p);
   return (
     <div className={`${card} space-y-4`}>
@@ -139,7 +139,7 @@ function Calc() {
   return (
     <div className={`${card} space-y-4`}>
       <div className="grid gap-4 sm:grid-cols-2">
-        {Object.keys(f).map((k) => <Field key={k} type="number" l={labels[k]} v={f[k as keyof typeof f]} set={(v) => setF({ ...f, [k]: v })} />)}
+        {Object.keys(f).map((k) => <Field key={k} type="number" l={labels[k] ?? k} v={f[k as keyof typeof f]} set={(v) => setF({ ...f, [k]: v })} />)}
       </div>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
         {[["CTR", `${m.ctr.toFixed(2)}%`], ["CPC", brl(m.cpc)], ["CPA", brl(m.cpa)], ["ROAS", `${m.roas.toFixed(2)}x`], ["ROI", `${m.roi.toFixed(1)}%`]].map(([k, v]) => (
