@@ -9,7 +9,7 @@ export type Tool = { id: string; name: string; desc: string; icon: LucideIcon; c
 
 export const categories = ["Inteligência e mineração", "Criação com IA", "Criativos e conteúdo", "Organização", "Tracking e escala"];
 
-const t = (id: string, name: string, desc: string, icon: LucideIcon, cat: number, status: ToolStatus = "soon"): Tool => ({ id, name, desc, icon, cat: categories[cat], status });
+const t = (id: string, name: string, desc: string, icon: LucideIcon, cat: number, status: ToolStatus = "soon"): Tool => ({ id, name, desc, icon, cat: categories[cat]!, status });
 
 export const tools: Tool[] = [
   t("catalog", "Catálogo de ofertas", "Ofertas organizadas por país e nicho.", Search, 0),

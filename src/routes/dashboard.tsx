@@ -11,7 +11,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { tools, categories, calcMetrics, buildUtm } from "@/lib/tools";
 
 export const Route = createFileRoute("/dashboard")({
-  validateSearch: (s: Record<string, unknown>): { tool?: string } => ({ tool: typeof s["tool"] === "string" ? s["tool"] : undefined }),
+  validateSearch: (s: Record<string, unknown>): { tool?: string | undefined } => ({ tool: typeof s["tool"] === "string" ? s["tool"] : undefined }),
   head: () => ({
     meta: [
       { title: "Painel — Mony Ads" },
