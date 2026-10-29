@@ -24,7 +24,7 @@ export const tools: Tool[] = [
   t("headlines", "Gerador de headlines", "Títulos que chamam atenção.", Type, 1),
   t("rewriter", "Reescritor de copy", "Novas versões da sua copy.", PenLine, 1),
   t("variations", "Variações de anúncios", "Múltiplas versões para testes.", Copy, 1),
-  t("creatives", "Criador de criativos", "Criativos para redes sociais.", Sparkles, 2),
+  t("creatives", "Criador de criativos", "Criativos de alta conversão para Facebook e Instagram Ads.", Sparkles, 2, "ready"),
   t("transcriber", "Transcritor de vídeos", "Transforme vídeos em texto.", Video, 2),
   t("imgedit", "Editor de imagens", "Ajustes rápidos em imagens.", ImagePlus, 2),
   t("carousel", "Gerador de carrosséis", "Carrosséis para redes sociais.", GalleryHorizontal, 2),
