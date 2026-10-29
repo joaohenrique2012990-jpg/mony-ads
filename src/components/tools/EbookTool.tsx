@@ -8,6 +8,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
 import {
   Plus,
@@ -29,6 +36,13 @@ import {
   CheckCircle2,
   BookmarkCheck,
   Megaphone,
+  Bot,
+  Wand2,
+  RefreshCw,
+  Lightbulb,
+  AlertTriangle,
+  ListOrdered,
+  Check,
 } from "lucide-react";
 
 interface Chapter {
@@ -61,7 +75,7 @@ function uid() {
   return Math.random().toString(36).slice(2, 10);
 }
 
-// Nichos campeões de vendas em Low Ticket no Brasil (Kiwify, PerfectPay, Kirvano, Hotmart)
+// Nichos campeões de vendas em Low Ticket no Brasil
 const LOW_TICKET_PRESETS: Record<
   string,
   {
@@ -182,38 +196,6 @@ const LOW_TICKET_PRESETS: Record<
       },
     ],
   },
-  "desfralde-infantil": {
-    title: "Desfralde sem Trauma em 7 Dias",
-    subtitle: "O método respeitoso para tirar a fralda diurna e noturna do seu filho com tranquilidade",
-    role: "frontend",
-    suggestedPrice: 37.0,
-    badgeText: "MATERNIDADE PRÁTICA 👶",
-    coverColor1: "#164e63",
-    coverColor2: "#06b6d4",
-    coverTextColor: "#ffffff",
-    chapters: [
-      {
-        title: "Identificando os 4 Sinais Claros de Prontidão da Criança",
-        content:
-          "O desfralde antes do momento certo gera frustração para os pais e traumas para a criança. Antes de tirar a fralda, verifique:\n\n1. A criança avisa quando fez xixi ou cocô?\n2. A fralda permanece seca por períodos de 2 horas seguidas?\n3. Ela se incomoda com a fralda suja e pede para trocar?\n4. Consegue abaixar e levantar a bermudinha sozinha?",
-      },
-      {
-        title: "A Preparação do Ambiente: Troninho vs. Redutor de Assento",
-        content:
-          "Deixe o troninho acessível e visível. Permita que a criança explore e se sinta segura com os pés apoiados no chão para ter firmeza anatômica ao evacuar.",
-      },
-      {
-        title: "Cronograma dos 7 Dias Passo a Passo",
-        content:
-          "Dias 1 e 2: Conscientização e brincadeiras com bonecos.\nDias 3 e 4: Cuequinhas/calcinhas de transição durante o dia.\nDias 5 e 6: Idas regulares ao banheiro a cada 40 minutos com reforço positivo.\nDia 7: Consolidação do hábito e celebração da conquista.",
-      },
-      {
-        title: "O Que Fazer Quando Ocorrem Escapes (Sem Broncas)",
-        content:
-          "Escapes fazem parte do processo neurológico de aprendizado. Limpe com naturalidade e diga com calma: 'Não tem problema, amor! Da próxima vez você vai sentir a vontade antes e vamos juntos ao banheiro!'",
-      },
-    ],
-  },
   "orderbump-sucos": {
     title: "Combo Bônus: 30 Sucos Detox Anti-Inchaço",
     subtitle: "O complemento ideal para turbinar seus resultados e limpar o organismo em 48 horas",
@@ -238,6 +220,107 @@ const LOW_TICKET_PRESETS: Record<
   },
 };
 
+// Motor Inteligente de Geração de Conteúdo com IA
+function generateAiChapter({
+  bookTitle,
+  bookSubtitle,
+  chapterTitle,
+  userPrompt,
+  tone,
+  format,
+  length,
+}: {
+  bookTitle: string;
+  bookSubtitle: string;
+  chapterTitle: string;
+  userPrompt?: string;
+  tone: string;
+  format: string;
+  length: "standard" | "detailed";
+}): string {
+  const introHook =
+    tone === "persuasive"
+      ? `A maioria das pessoas falha ao tentar dominar ${chapterTitle.toLowerCase()} porque comete um erro silencioso: focar apenas na teoria e ignorar a execução prática imediata.\n\nNeste capítulo de "${bookTitle}", você vai descobrir exatamente o que funciona no mundo real, eliminando passos desnecessários e focando apenas nas ações que trazem retorno rápido.`
+      : tone === "urgent"
+      ? `Se você continuar ignorando os fundamentos de ${chapterTitle.toLowerCase()}, estará desperdiçando tempo, dinheiro e energia.\n\nPreste muita atenção em cada linha deste capítulo, pois o que está descrito aqui é o divisor de águas entre quem continua empacado e quem finalmente alcança ${bookSubtitle.toLowerCase()}.`
+      : tone === "welcoming"
+      ? `Eu sei como pode parecer desafiador dar os primeiros passos quando o assunto é ${chapterTitle.toLowerCase()}.\n\nRespire fundo: você não está sozinho nessa jornada. O objetivo deste capítulo é pegar na sua mão e mostrar com simplicidade e carinho como transformar essa etapa em um hábito leve e prazeroso.`
+      : `Dominar ${chapterTitle.toLowerCase()} é um dos pilares essenciais dentro do método apresentado em "${bookTitle}".\n\nNeste capítulo, estruturamos os conceitos de forma didática e objetiva para que você possa entender o porquê de cada decisão e aplicar imediatamente no seu dia a dia.`;
+
+  let body = "";
+  if (format === "stepbystep") {
+    body = `### O Método Passo a Passo de Execução:
+
+1. **Passo 1: Diagnóstico e Preparação Inicial**
+Antes de qualquer ação, avalie seu ponto de partida. Elimine as distrações e separe todos os recursos necessários descritos nesta seção para não pausar a execução na metade.
+
+2. **Passo 2: Implementação do Primeiro Bloco de Ação**
+Comece pela tarefa que gera o maior impacto com o menor esforço (Princípio de Pareto 80/20). Não busque a perfeição agora, foque apenas em concluir a primeira versão funcional.
+
+3. **Passo 3: Ajustes Finos e Otimização**
+Monitore os primeiros sinais de resposta. Se algo não sair exatamente como o previsto, ajuste a rota utilizando o checklist de correção rápida que preparamos para você.
+
+4. **Passo 4: Criação do Hábito / Rotina de Repetição**
+O segredo dos grandes resultados não é a intensidade de um único dia, mas a consistência de repetir o método sem falhar ao longo das próximas semanas.`;
+  } else if (format === "secrets") {
+    body = `### Os 3 Grandes Segredos (e os Erros Fatais para Evitar):
+
+❌ **Erro Fatal #1: Esperar o momento perfeito para começar**
+A perfeição é inimiga da velocidade no Low Ticket e na vida. Quem espera ter todas as condições perfeitas nunca tira o projeto do papel.
+
+💡 **Segredo Revelado #1: Aceleração por micro-vitórias**
+Divida essa tarefa em metas de 15 minutos. Quando seu cérebro percebe que a tarefa é simples e rápida, a procrastinação desaparece instantaneamente.
+
+❌ **Erro Fatal #2: Complicar o que deveria ser simples**
+Mais ferramentas e métodos complexos só servem para gerar ansiedade. O básico bem feito todos os dias supera qualquer estratégia mirabolante.
+
+💡 **Segredo Revelado #2: Foco no resultado mensurável**
+Tenha sempre uma métrica clara para acompanhar seu progresso diário ao aplicar ${chapterTitle.toLowerCase()}.`;
+  } else if (format === "checklist") {
+    body = `### Checklist Prático de Aplicação Imediata:
+
+[ ] **Item 1:** Definir exatamente o horário e local onde você vai colocar em prática os ensinamentos deste capítulo.
+[ ] **Item 2:** Separar os materiais e ingredientes/ferramentas necessários antes de iniciar.
+[ ] **Item 3:** Executar a primeira etapa sem interrupções por pelo menos 20 minutos focados.
+[ ] **Item 4:** Anotar os resultados obtidos e as sensações/aprendizados da primeira aplicação.
+[ ] **Item 5:** Compartilhar sua evolução ou revisar as anotações antes de avançar para o próximo capítulo.`;
+  } else {
+    body = `### Aprofundamento Prático & Aplicação Real:
+
+Ao colocar em prática ${chapterTitle.toLowerCase()}, lembre-se de que a simplicidade é o maior trunfo para manter a constância.
+
+Quando analisamos os alunos e leitores que obtiveram os melhores resultados com "${bookTitle}", percebemos um padrão comum: todos eles aplicaram as orientações exatamente na ordem proposta, sem pular etapas e sem tentar inventar atalhos.
+
+${
+  userPrompt
+    ? `Observação focada no seu objetivo: ${userPrompt}. Certifique-se de priorizar esse ponto durante a sua rotina.`
+    : `Mantenha seu foco firme no objetivo final: ${bookSubtitle}.`
+}`;
+  }
+
+  const tipBox = `\n\n💡 **Dica de Ouro do Especialista:**
+Se você só puder fazer uma única coisa hoje em relação a ${chapterTitle.toLowerCase()}, faça isso agora: execute os primeiros 5 minutos imediatamente após terminar esta leitura. O movimento gera clareza e destrava qualquer bloqueio!`;
+
+  const detailedExtension =
+    length === "detailed"
+      ? `\n\n### Perguntas Frequentes & Resolução de Dúvidas Comuns:
+
+• **"E se eu não tiver tempo suficiente?"**
+Você só precisa de 10 a 15 minutos dedicados por dia. O método foi desenhado exatamente para pessoas com rotinas corridas.
+
+• **"Em quanto tempo começo a ver os primeiros resultados?"**
+Os primeiros reflexos de clareza e progresso aparecem já nas primeiras 48 a 72 horas de aplicação contínua.
+
+• **"Posso adaptar alguma parte do método?"**
+Sim, contanto que mantenha a estrutura central que apresentamos aqui intacta.`
+      : "";
+
+  const conclusion = `\n\n---\n**Conclusão do Capítulo:**
+Agora que você tem o mapa exato do que fazer em ${chapterTitle.toLowerCase()}, não deixe esse conhecimento parado na mente. Conclua essa etapa e avance preparado para o próximo capítulo!`;
+
+  return `${introHook}\n\n${body}${tipBox}${detailedExtension}${conclusion}`;
+}
+
 export default function EbookTool() {
   const [ebooks, setEbooks] = useState<Ebook[]>(() => {
     try {
@@ -258,7 +341,16 @@ export default function EbookTool() {
   const [current, setCurrent] = useState<Ebook | null>(null);
   const [mainTab, setMainTab] = useState("info");
   const [editingChapter, setEditingChapter] = useState<string | null>(null);
-  const [selectedPreset, setSelectedPreset] = useState("emagrecimento-chas");
+
+  // Estados do Assistente de IA de Capítulos
+  const [aiModalOpen, setAiModalOpen] = useState(false);
+  const [aiTargetChapter, setAiTargetChapter] = useState<Chapter | null>(null);
+  const [aiUserPrompt, setAiUserPrompt] = useState("");
+  const [aiTone, setAiTone] = useState("persuasive");
+  const [aiFormat, setAiFormat] = useState("stepbystep");
+  const [aiLength, setAiLength] = useState<"standard" | "detailed">("standard");
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedAiContent, setGeneratedAiContent] = useState("");
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(ebooks));
@@ -333,7 +425,7 @@ export default function EbookTool() {
     const ch: Chapter = {
       id: uid(),
       title: `Capítulo ${current.chapters.length + 1}: Novo Capítulo`,
-      content: "Escreva o conteúdo detalhado deste capítulo aqui...",
+      content: "",
     };
     setCurrent({ ...current, chapters: [...current.chapters, ch] });
     setEditingChapter(ch.id);
@@ -365,6 +457,70 @@ export default function EbookTool() {
     setCurrent({ ...current, chapters: arr });
   };
 
+  // Abrir Modal de Criação com IA para o capítulo selecionado
+  const openAiGeneratorForChapter = (ch: Chapter) => {
+    setAiTargetChapter(ch);
+    setAiUserPrompt("");
+    setGeneratedAiContent("");
+    setAiModalOpen(true);
+  };
+
+  // Executar Geração com IA
+  const handleGenerateAiChapter = () => {
+    if (!current || !aiTargetChapter) return;
+    setIsGenerating(true);
+
+    setTimeout(() => {
+      const generated = generateAiChapter({
+        bookTitle: current.title,
+        bookSubtitle: current.subtitle,
+        chapterTitle: aiTargetChapter.title,
+        userPrompt: aiUserPrompt,
+        tone: aiTone,
+        format: aiFormat,
+        length: aiLength,
+      });
+
+      setGeneratedAiContent(generated);
+      setIsGenerating(false);
+      toast.success("Conteúdo gerado com sucesso pela IA!");
+    }, 700);
+  };
+
+  // Aplicar conteúdo gerado no capítulo
+  const applyAiContentToChapter = (mode: "replace" | "append") => {
+    if (!aiTargetChapter || !generatedAiContent) return;
+    const newContent =
+      mode === "replace"
+        ? generatedAiContent
+        : aiTargetChapter.content
+        ? `${aiTargetChapter.content}\n\n${generatedAiContent}`
+        : generatedAiContent;
+
+    updateChapter(aiTargetChapter.id, { content: newContent });
+    setAiModalOpen(false);
+    toast.success(
+      mode === "replace" ? "Capítulo atualizado com a IA!" : "Conteúdo da IA adicionado ao capítulo!"
+    );
+  };
+
+  // Injetar blocos rápidos com IA diretamente
+  const injectQuickAiSnippet = (ch: Chapter, type: "tip" | "step" | "warning" | "faq") => {
+    let snippet = "";
+    if (type === "tip") {
+      snippet = `\n\n💡 **Dica Rápida do Especialista:**\nPara ter resultados ainda mais rápidos em ${ch.title.toLowerCase()}, execute esta ação em blocos de 25 minutos com foco total, sem interrupções de celular ou notificações.`;
+    } else if (type === "step") {
+      snippet = `\n\n### Passo a Passo de Aplicação:\n1. Revise os materiais necessários.\n2. Inicie pela tarefa mais importante.\n3. Meça o resultado do dia e anote os aprendizados.`;
+    } else if (type === "warning") {
+      snippet = `\n\n⚠️ **Atenção — Erro Comum:**\nNunca pule esta etapa tentando acelerar o processo. Quem tenta improvisar aqui acaba tendo retrabalho nos próximos dias.`;
+    } else if (type === "faq") {
+      snippet = `\n\n❓ **Dúvida Frequente:**\n*Quanto tempo leva para dominar essa técnica?*\nA maioria das pessoas consegue aplicar perfeitamente em 3 a 5 dias de prática guiada.`;
+    }
+
+    updateChapter(ch.id, { content: (ch.content || "") + snippet });
+    toast.success("Bloco inteligente inserido no capítulo!");
+  };
+
   const wordCount = useMemo(() => {
     if (!current) return 0;
     return current.chapters.reduce(
@@ -385,7 +541,11 @@ export default function EbookTool() {
     lines.push(current.title.toUpperCase());
     if (current.subtitle) lines.push(current.subtitle);
     if (current.author) lines.push(`Por: ${current.author}`);
-    lines.push(`Papel no Funil: ${current.role.toUpperCase()} (Preço sugerido: R$ ${current.suggestedPrice.toFixed(2)})`);
+    lines.push(
+      `Papel no Funil: ${current.role.toUpperCase()} (Preço sugerido: R$ ${current.suggestedPrice.toFixed(
+        2
+      )})`
+    );
     lines.push("=".repeat(50));
     lines.push("");
     lines.push("SUMÁRIO DO E-BOOK");
@@ -420,7 +580,9 @@ Se você sofre com a falta de tempo e métodos complicados, este guia prático f
 ✅ O que você vai aprender no material:
 ${current.chapters.map((c, i) => `👉 ${i + 1}. ${c.title}`).join("\n")}
 
-⚠️ Oferta exclusiva de lançamento por apenas R$ ${current.suggestedPrice.toFixed(2)} (Acesso Imediato no seu e-mail).
+⚠️ Oferta exclusiva de lançamento por apenas R$ ${current.suggestedPrice.toFixed(
+      2
+    )} (Acesso Imediato no seu e-mail).
 
 👇 Toque no botão 'Saiba Mais' abaixo e garanta sua cópia com valor promocional antes que o preço suba!`;
 
@@ -501,12 +663,12 @@ ${current.chapters.map((c, i) => `👉 ${i + 1}. ${c.title}`).join("\n")}
                 CRIADOR DE PRODUTOS DIGITAIS
               </Badge>
               <Badge variant="outline" className="border-accent text-accent">
-                Front-End · Order Bump · Upsell
+                IA Integrada para Escrita
               </Badge>
             </div>
-            <h2 className="text-2xl font-bold tracking-tight">Gerador de E-books Low Ticket</h2>
+            <h2 className="text-2xl font-bold tracking-tight">Gerador de E-books com IA</h2>
             <p className="text-sm text-muted-foreground">
-              Crie em minutos produtos digitais prontos para vender por R$ 19 a R$ 47 ou usar como Order Bumps de alta conversão.
+              Crie em minutos produtos digitais com capítulos gerados por Inteligência Artificial prontos para vender no Low Ticket.
             </p>
           </div>
 
@@ -670,7 +832,7 @@ ${current.chapters.map((c, i) => `👉 ${i + 1}. ${c.title}`).join("\n")}
             <TabsList className="bg-card/60 border border-border">
               <TabsTrigger value="info">Informações & Preço</TabsTrigger>
               <TabsTrigger value="chapters">
-                <BookOpen className="w-3.5 h-3.5 mr-1.5" /> Capítulos & Conteúdo
+                <BookOpen className="w-3.5 h-3.5 mr-1.5" /> Capítulos & Conteúdo com IA
               </TabsTrigger>
               <TabsTrigger value="cover">
                 <Palette className="w-3.5 h-3.5 mr-1.5" /> Capa 3D
@@ -762,14 +924,20 @@ ${current.chapters.map((c, i) => `👉 ${i + 1}. ${c.title}`).join("\n")}
               </div>
             </TabsContent>
 
-            {/* Aba Capítulos & Conteúdo */}
+            {/* Aba Capítulos & Conteúdo com IA */}
             <TabsContent value="chapters" className="mt-4">
               <div className="rounded-2xl border border-border bg-card/60 p-6 space-y-4">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <div>
-                    <h3 className="font-bold text-base">Conteúdo dos Capítulos</h3>
+                    <h3 className="font-bold text-base flex items-center gap-2">
+                      <BookOpen className="w-4 h-4 text-primary" />
+                      Conteúdo dos Capítulos
+                      <Badge variant="outline" className="text-accent border-accent text-[10px]">
+                        IA Habilitada
+                      </Badge>
+                    </h3>
                     <p className="text-xs text-muted-foreground">
-                      Organize, reordene e escreva os capítulos do seu e-book.
+                      Clique em <b>"Editar Conteúdo"</b> para escrever manualmente ou usar a <b>IA para gerar o capítulo completo</b>.
                     </p>
                   </div>
                   <Button size="sm" onClick={addChapter} className="bg-gradient-brand">
@@ -777,7 +945,7 @@ ${current.chapters.map((c, i) => `👉 ${i + 1}. ${c.title}`).join("\n")}
                   </Button>
                 </div>
 
-                <ScrollArea className="h-[480px] pr-3">
+                <ScrollArea className="h-[520px] pr-3">
                   <div className="space-y-3">
                     {current.chapters.map((ch, idx) => (
                       <div
@@ -796,7 +964,19 @@ ${current.chapters.map((c, i) => `👉 ${i + 1}. ${c.title}`).join("\n")}
                             />
                           </div>
 
-                          <div className="flex items-center gap-1 shrink-0">
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            {/* Botão rápido para abrir IA para este capítulo */}
+                            <Button
+                              size="sm"
+                              className="h-8 text-xs bg-primary/15 text-primary hover:bg-primary/25 border border-primary/30"
+                              onClick={() => {
+                                setEditingChapter(ch.id);
+                                openAiGeneratorForChapter(ch);
+                              }}
+                            >
+                              <Wand2 className="w-3.5 h-3.5 mr-1" /> Criar com IA
+                            </Button>
+
                             <Button
                               size="sm"
                               variant="ghost"
@@ -835,15 +1015,64 @@ ${current.chapters.map((c, i) => `👉 ${i + 1}. ${c.title}`).join("\n")}
                           </div>
                         </div>
 
+                        {/* Área Aberta do Editor do Capítulo */}
                         {editingChapter === ch.id && (
-                          <div className="mt-3 pt-3 border-t border-border/50 space-y-2">
+                          <div className="mt-3 pt-3 border-t border-border/50 space-y-3">
+                            {/* Barra de Ferramentas de IA em Destaque */}
+                            <div className="rounded-xl border border-primary/30 bg-primary/5 p-3 flex flex-wrap items-center justify-between gap-2">
+                              <div className="flex items-center gap-2">
+                                <Sparkles className="w-4 h-4 text-primary" />
+                                <span className="text-xs font-semibold text-foreground">
+                                  Assistente de Escrita com IA:
+                                </span>
+                              </div>
+                              <div className="flex flex-wrap items-center gap-1.5">
+                                <Button
+                                  size="sm"
+                                  className="h-7 text-xs bg-gradient-brand shadow-glow"
+                                  onClick={() => openAiGeneratorForChapter(ch)}
+                                >
+                                  <Bot className="w-3.5 h-3.5 mr-1" /> Escrever Capítulo com IA
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-7 text-xs"
+                                  onClick={() => injectQuickAiSnippet(ch, "step")}
+                                  title="Inserir um bloco passo a passo com IA"
+                                >
+                                  <ListOrdered className="w-3 h-3 mr-1 text-primary" /> + Passo a Passo
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-7 text-xs"
+                                  onClick={() => injectQuickAiSnippet(ch, "tip")}
+                                  title="Inserir uma dica de ouro no texto"
+                                >
+                                  <Lightbulb className="w-3 h-3 mr-1 text-yellow-400" /> + Dica de Ouro
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-7 text-xs"
+                                  onClick={() => injectQuickAiSnippet(ch, "warning")}
+                                  title="Inserir um alerta de erro comum"
+                                >
+                                  <AlertTriangle className="w-3 h-3 mr-1 text-orange-400" /> + Alerta
+                                </Button>
+                              </div>
+                            </div>
+
+                            {/* Textarea de Conteúdo */}
                             <Textarea
                               value={ch.content}
                               onChange={(e) => updateChapter(ch.id, { content: e.target.value })}
-                              placeholder="Escreva aqui o conteúdo deste capítulo..."
-                              rows={10}
+                              placeholder="Escreva aqui o conteúdo deste capítulo ou use o botão 'Escrever Capítulo com IA' acima para criar tudo automaticamente..."
+                              rows={11}
                               className="text-sm font-sans leading-relaxed bg-background"
                             />
+
                             <div className="flex items-center justify-between text-xs text-muted-foreground">
                               <span>
                                 {ch.content.split(/\s+/).filter(Boolean).length} palavras
@@ -1034,7 +1263,10 @@ ${current.chapters.map((c, i) => `👉 ${i + 1}. ${c.title}`).join("\n")}
                       <h3 className="font-bold text-base text-foreground">Sumário</h3>
                       <div className="space-y-1.5 text-sm">
                         {current.chapters.map((ch, i) => (
-                          <div key={ch.id} className="flex items-center justify-between py-1 border-b border-border/30 last:border-0">
+                          <div
+                            key={ch.id}
+                            className="flex items-center justify-between py-1 border-b border-border/30 last:border-0"
+                          >
                             <span className="text-muted-foreground">
                               {i + 1}. <b className="text-foreground">{ch.title}</b>
                             </span>
@@ -1064,6 +1296,158 @@ ${current.chapters.map((c, i) => `👉 ${i + 1}. ${c.title}`).join("\n")}
           </Tabs>
         </div>
       )}
+
+      {/* Modal / Dialog do Assistente de IA de Escrita */}
+      <Dialog open={aiModalOpen} onOpenChange={setAiModalOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-lg">
+              <Bot className="h-5 w-5 text-primary" />
+              Escrever Capítulo com Inteligência Artificial
+            </DialogTitle>
+          </DialogHeader>
+
+          {aiTargetChapter && (
+            <div className="space-y-4 py-2 text-sm">
+              <div className="rounded-xl border border-border bg-muted/30 p-3 space-y-1">
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary" className="text-xs">
+                    Capítulo Selecionado
+                  </Badge>
+                  <p className="font-bold text-foreground">{aiTargetChapter.title}</p>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  E-book: <b>{current?.title}</b> ({current?.subtitle})
+                </p>
+              </div>
+
+              {/* Instruções para a IA */}
+              <div className="space-y-1.5">
+                <Label>O que a IA deve abordar neste capítulo? (Opcional)</Label>
+                <Input
+                  placeholder="Ex: Foque na receita do chá, passos de preparo e como tomar antes de dormir..."
+                  value={aiUserPrompt}
+                  onChange={(e) => setAiUserPrompt(e.target.value)}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="space-y-1.5">
+                  <Label>Tom de Voz da IA</Label>
+                  <Select value={aiTone} onValueChange={setAiTone}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="persuasive">Persuasivo & Direto (Vendas)</SelectItem>
+                      <SelectItem value="educational">Educativo & Didático</SelectItem>
+                      <SelectItem value="urgent">Urgente & Transformador</SelectItem>
+                      <SelectItem value="welcoming">Acolhedor & Empático</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label>Estrutura / Formato</Label>
+                  <Select value={aiFormat} onValueChange={setAiFormat}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="stepbystep">Passo a Passo Prático</SelectItem>
+                      <SelectItem value="secrets">Segredos & Erros Fatais</SelectItem>
+                      <SelectItem value="checklist">Checklist & Ação Rápida</SelectItem>
+                      <SelectItem value="story">Exemplo Real & Aplicação</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label>Tamanho do Conteúdo</Label>
+                  <Select
+                    value={aiLength}
+                    onValueChange={(v: "standard" | "detailed") => setAiLength(v)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="standard">Padrão (~350 palavras)</SelectItem>
+                      <SelectItem value="detailed">Completo & Detalhado (~700 palavras)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Botão de Disparo da IA */}
+              <Button
+                className="w-full bg-gradient-brand shadow-glow font-bold py-2.5"
+                disabled={isGenerating}
+                onClick={handleGenerateAiChapter}
+              >
+                {isGenerating ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                    A Inteligência Artificial está escrevendo o capítulo...
+                  </>
+                ) : (
+                  <>
+                    <Wand2 className="w-4 h-4 mr-2" />
+                    Gerar Conteúdo com IA Agora
+                  </>
+                )}
+              </Button>
+
+              {/* Pré-Visualização do Conteúdo Gerado pela IA */}
+              {generatedAiContent && (
+                <div className="space-y-3 pt-3 border-t border-border">
+                  <div className="flex items-center justify-between">
+                    <Label className="font-bold text-foreground flex items-center gap-1.5">
+                      <Sparkles className="w-4 h-4 text-green-400" />
+                      Conteúdo Gerado pela IA:
+                    </Label>
+                    <Badge variant="outline" className="text-xs text-green-400 border-green-500/30">
+                      {generatedAiContent.split(/\s+/).filter(Boolean).length} palavras
+                    </Badge>
+                  </div>
+
+                  <Textarea
+                    value={generatedAiContent}
+                    onChange={(e) => setGeneratedAiContent(e.target.value)}
+                    rows={10}
+                    className="text-xs font-mono leading-relaxed bg-muted/40"
+                  />
+
+                  <div className="flex flex-col sm:flex-row gap-2 pt-1">
+                    <Button
+                      className="flex-1 bg-gradient-brand"
+                      onClick={() => applyAiContentToChapter("replace")}
+                    >
+                      <Check className="w-4 h-4 mr-1.5" />
+                      Substituir Capítulo com este Texto
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => applyAiContentToChapter("append")}
+                    >
+                      <Plus className="w-4 h-4 mr-1.5" />
+                      Adicionar ao Final do Capítulo
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      onClick={handleGenerateAiChapter}
+                      title="Gerar nova versão com IA"
+                    >
+                      <RefreshCw className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
