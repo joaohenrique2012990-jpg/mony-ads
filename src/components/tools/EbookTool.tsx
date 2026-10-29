@@ -1,6 +1,4 @@
-"use client";
-
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,8 +10,25 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import {
-  Plus, Trash2, Copy, Eye, Save, FolderOpen, BookOpen,
-  ArrowUp, ArrowDown, Sparkles, Palette, FileDown
+  Plus,
+  Trash2,
+  Copy,
+  Eye,
+  Save,
+  FolderOpen,
+  BookOpen,
+  ArrowUp,
+  ArrowDown,
+  Sparkles,
+  Palette,
+  FileDown,
+  Download,
+  Share2,
+  DollarSign,
+  Layers,
+  CheckCircle2,
+  BookmarkCheck,
+  Megaphone,
 } from "lucide-react";
 
 interface Chapter {
@@ -22,174 +37,322 @@ interface Chapter {
   content: string;
 }
 
+export type LowTicketRole = "frontend" | "orderbump" | "upsell" | "leadmagnet";
+
 interface Ebook {
   id: string;
   title: string;
   subtitle: string;
   author: string;
-  topic: string;
+  niche: string;
+  role: LowTicketRole; // Front-End (R$ 19-37), Order Bump (+R$ 14-19), Upsell (+R$ 47-67)
+  suggestedPrice: number;
+  badgeText: string;
   coverColor1: string;
   coverColor2: string;
   coverTextColor: string;
   chapters: Chapter[];
-  template: string;
   createdAt: string;
 }
 
-const STORAGE_KEY = "monyads-ebooks";
+const STORAGE_KEY = "monyads-lowticket-ebooks";
 
 function uid() {
   return Math.random().toString(36).slice(2, 10);
 }
 
-const NICHE_SUGGESTIONS: Record<string, { chapters: string[]; subtopics: Record<string, string> }> = {
-  marketing: {
+// Nichos campeões de vendas em Low Ticket no Brasil (Kiwify, PerfectPay, Kirvano, Hotmart)
+const LOW_TICKET_PRESETS: Record<
+  string,
+  {
+    title: string;
+    subtitle: string;
+    role: LowTicketRole;
+    suggestedPrice: number;
+    badgeText: string;
+    coverColor1: string;
+    coverColor2: string;
+    coverTextColor: string;
+    chapters: { title: string; content: string }[];
+  }
+> = {
+  "emagrecimento-chas": {
+    title: "Protocolo 21 Dias Seca Tudo",
+    subtitle: "O método dos chás noturnos para desinflamar e acelerar o metabolismo sem academia",
+    role: "frontend",
+    suggestedPrice: 19.9,
+    badgeText: "LOW TICKET CAMPEÃO 🔥",
+    coverColor1: "#065f46",
+    coverColor2: "#10b981",
+    coverTextColor: "#ffffff",
     chapters: [
-      "Fundamentos do Marketing Digital",
-      "Como Definir Seu Público-Alvo",
-      "Estratégias de Tráfego Pago",
-      "Marketing de Conteúdo que Converte",
-      "Funis de Vendas na Prática",
-      "E-mail Marketing Automatizado",
-      "Métricas e KPIs Essenciais",
-      "Escale Seus Resultados",
+      {
+        title: "Por Que Dietas Radicais Travam Seu Metabolismo",
+        content:
+          "Se você já tentou cortar carboidratos, passar fome ou viver de salada e mesmo assim a balança continuou travada, a culpa não é sua.\n\nQuando você restringe drasticamente as calorias, seu corpo entra em modo de sobrevivência, reduzindo o gasto calórico e retendo líquidos. Neste protocolo de 21 dias, vamos trabalhar a desinflamação celular usando compostos naturais que reprogramam o metabolismo de dentro para fora.",
+      },
+      {
+        title: "A Tríade dos Chás Noturnos Desintoxicantes",
+        content:
+          "Durante o sono profundo ocorre o pico da produção de hormônios reguladores do apetite (grelina e leptina). Tomar o chá certo antes de dormir diminui a inflamação intestinal e combate o inchaço matinal.\n\nReceita 1: Chá de Camomila com Canela em Pau e Gengibre Ralado.\nPreparo: Ferva 250ml de água, adicione a canela e o gengibre por 3 minutos. Desligue, adicione a camomila e abafe por 5 minutos. Tome 30 minutos antes de se deitar.",
+      },
+      {
+        title: "Cardápio Prático de 21 Dias Sem Passar Fome",
+        content:
+          "Aqui está a estrutura de refeições fáceis e acessíveis com ingredientes que você já tem na sua geladeira:\n\n• Café da Manhã: Ovos mexidos com azeite + fatia de mamão com sementes de chia.\n• Almoço: Prato colorido (50% salada crua/cozida, 25% proteína magra, 25% carboidrato bom como batata doce ou arroz integral).\n• Lanche da Tarde: Castanhas ou iogurte natural com canela.\n• Jantar: Sopa nutritiva ou omelete leve.",
+      },
+      {
+        title: "Lista Secreta de Alimentos que Secam a Barriga",
+        content:
+          "Alimentos termogênicos e diuréticos naturais que devem fazer parte do seu carrinho de compras:\n\n1. Pepino e Limão (limpeza renal imediata)\n2. Chá Verde e Hibisco (combate a retenção hídrica)\n3. Frutas vermelhas e Abacaxi (enzimas digestivas poderosas)\n4. Sementes de Abóbora e Chia (saciedade prolongada)",
+      },
+      {
+        title: "Como Evitar o Efeito Sanfona Definitivamente",
+        content:
+          "O segredo para nunca mais engordar os quilos eliminados é a regra do equilíbrio 80/20. Em 80% do tempo você nutre seu corpo com refeições anti-inflamatórias, e em 20% você desfruta de momentos sociais sem culpa.\n\nA consistência supera a perfeição em qualquer processo de emagrecimento duradouro.",
+      },
     ],
-    subtopics: {
-      "Fundamentos do Marketing Digital": "Neste capítulo, você vai aprender os pilares do marketing digital moderno. Vamos abordar desde a construção de presença online até as principais plataformas e ferramentas disponíveis para empreendedores e profissionais de marketing.\n\nO marketing digital é a base para qualquer negócio que deseja crescer no mundo conectado. Entender os fundamentos é essencial antes de avançar para estratégias mais complexas.",
-      "Como Definir Seu Público-Alvo": "Conhecer profundamente seu público-alvo é a chave para o sucesso de qualquer campanha. Neste capítulo, vamos explorar técnicas de pesquisa de mercado, criação de personas e segmentação de audiência.\n\nVocê vai aprender a identificar as dores, desejos e comportamentos do seu cliente ideal para criar mensagens que realmente conectam.",
-    },
   },
-  finanças: {
+  "marmitas-lucrativas": {
+    title: "Marmitas Fit Congeladas Lucrativas",
+    subtitle: "Como faturar de R$ 2.000 a R$ 5.000 por mês cozinhando na cozinha da sua própria casa",
+    role: "frontend",
+    suggestedPrice: 27.0,
+    badgeText: "RENDA EXTRA RÁPIDA 💰",
+    coverColor1: "#9a3412",
+    coverColor2: "#f97316",
+    coverTextColor: "#ffffff",
     chapters: [
-      "Organize Suas Finanças Pessoais",
-      "Construindo uma Reserva de Emergência",
-      "Tipos de Investimento para Iniciantes",
-      "Renda Fixa vs. Renda Variável",
-      "Como Montar uma Carteira Diversificada",
-      "Planejamento de Aposentadoria",
-      "Imposto de Renda: Guia Prático",
-      "Hábitos de Pessoas Financeiramente Livres",
+      {
+        title: "O Mercado Bilionário da Praticidade e Alimentação Saudável",
+        content:
+          "As pessoas não têm mais tempo de cozinhar todos os dias, mas desejam comer saudável. Quem oferece comida saborosa, bem embalada e pronta para esquentar no micro-ondas tem fila de clientes garantida no WhatsApp.\n\nVocê não precisa de equipamentos industriais para começar: com o seu fogão, geladeira e panelas atuais já é possível iniciar suas primeiras 30 marmitas.",
+      },
+      {
+        title: "Os 5 Menus Mais Vendidos e Pedidos",
+        content:
+          "Os cardápios que mais geram recompra toda semana:\n\n1. Escondidinho de Batata Doce com Frango Desfiado\n2. Patinho Moído com Purê de Mandioquinha e Brócolis\n3. Strogonoff Fit de Frango com Arroz Integral\n4. Filé de Tilápia com Legumes Grelhados no Azeite\n5. Nhoque de Ricota com Espinafre ao Molho Rústico de Tomate",
+      },
+      {
+        title: "Técnicas de Congelamento Seguro Sem Juntar Água",
+        content:
+          "O maior erro de quem começa é congelar a comida ainda morna ou colocar vegetais com alto teor de água crua. Isso faz a marmita ficar empapada ao descongelar.\n\nRegra de Ouro: Espere o alimento atingir temperatura ambiente, resfrie na geladeira por 1 hora e só então leve ao congelador. Faça o branqueamento prévio dos vegetais (mergulhe em água fervente por 2 minutos e depois em água com gelo).",
+      },
+      {
+        title: "Precificação Inteligente: Lucro Real por Marmita",
+        content:
+          "Fórmula de precificação simples:\nCusto do Ingrediente + Custo da Embalagem + 30% Custos Operacionais (Gás, Energia, Água) x Margem de Lucro desejada (mínimo de 100% a 150%).\n\nExemplo:\nMarmita com custo total de R$ 6,50 deve ser vendida entre R$ 15,00 e R$ 18,00 no combo semanal.",
+      },
+      {
+        title: "Script de WhatsApp para Fechar 15 Clientes Fixos por Semana",
+        content:
+          "Mensagem para enviar nos grupos do bairro e condomínio:\n\n'Olá vizinhos! 🥗 Para quem quer comer comida saudável e caseira sem ter trabalho de cozinhar na semana, abri 10 vagas para o meu combo semanal de marmitas fit congeladas com entrega grátis no condomínio nesta sexta-feira. Quem quiser o cardápio da semana com desconto de primeira compra, me chama aqui no direct!'",
+      },
     ],
-    subtopics: {
-      "Organize Suas Finanças Pessoais": "O primeiro passo para a liberdade financeira é organizar suas finanças. Neste capítulo, vamos criar um sistema simples e eficaz para controlar receitas, despesas e definir metas financeiras.\n\nVocê vai aprender a usar a regra 50/30/20, criar planilhas de controle e identificar gastos desnecessários que estão impedindo seu crescimento financeiro.",
-    },
   },
-  saúde: {
+  "oracao-salmos": {
+    title: "O Guia dos Salmos da Prosperidade",
+    subtitle: "Orações diárias para blindar sua casa, destrancar caminhos e alcançar a paz financeira",
+    role: "frontend",
+    suggestedPrice: 17.0,
+    badgeText: "ESPIRITUALIDADE & FÉ ✨",
+    coverColor1: "#1e1b4b",
+    coverColor2: "#4338ca",
+    coverTextColor: "#ffffff",
     chapters: [
-      "Alimentação Saudável no Dia a Dia",
-      "A Importância do Exercício Físico",
-      "Saúde Mental e Bem-Estar",
-      "Rotinas Matinais para Mais Energia",
-      "Sono de Qualidade: Guia Completo",
-      "Suplementação Inteligente",
-      "Como Manter a Motivação",
-      "Criando Hábitos que Duram",
+      {
+        title: "O Poder da Palavra e da Oração com Propósito",
+        content:
+          "A oração não é apenas um pedido repetitivo, mas uma conversa de intimidade e alinhamento com os planos de Deus para sua família.\n\nQuando você ora com fé inabalável e entendimento das promessas divinas, o medo cede lugar à convicção de que o melhor ainda está por vir.",
+      },
+      {
+        title: "Salmo 23: Oração para Não Faltar Provisão no Lar",
+        content:
+          "'O Senhor é meu pastor, nada me faltará.'\n\nComo aplicar na prática: Faça esta oração todas as manhãs antes de sair de casa ou começar seus trabalhos. Agradeça antecipadamente pelo pão na mesa e pela sabedoria para administrar suas finanças com retidão.",
+      },
+      {
+        title: "Salmo 91: Blindagem Espiritual Contra Inveja e Calúnias",
+        content:
+          "'Aquele que habita no esconderijo do Altíssimo, à sombra do Onipotente descansará.'\n\nColoque este salmo aberto no cômodo central da sua residência e leia em voz alta com seus familiares uma vez por semana, consagrando cada entrada e saída do seu lar.",
+      },
+      {
+        title: "Rotina Devocional da Meia-Noite para Quebra de Bloqueios",
+        content:
+          "Nos momentos de silêncio da noite, separe 10 minutos para agradecer pelas livramentos do dia e entregar nas mãos do Criador as decisões difíceis do dia seguinte.",
+      },
     ],
-    subtopics: {
-      "Alimentação Saudável no Dia a Dia": "A alimentação é o pilar fundamental da saúde. Neste capítulo, vamos desmistificar dietas da moda e apresentar um guia prático para montar refeições nutritivas, saborosas e acessíveis.\n\nVocê vai aprender a ler rótulos de alimentos, planejar suas refeições semanais e fazer substituições inteligentes sem sacrificar o prazer de comer.",
-    },
   },
-  negócios: {
+  "desfralde-infantil": {
+    title: "Desfralde sem Trauma em 7 Dias",
+    subtitle: "O método respeitoso para tirar a fralda diurna e noturna do seu filho com tranquilidade",
+    role: "frontend",
+    suggestedPrice: 37.0,
+    badgeText: "MATERNIDADE PRÁTICA 👶",
+    coverColor1: "#164e63",
+    coverColor2: "#06b6d4",
+    coverTextColor: "#ffffff",
     chapters: [
-      "Encontrando Sua Ideia de Negócio",
-      "Validação de Mercado",
-      "Modelo de Negócio Canvas",
-      "Precificação Estratégica",
-      "Vendas e Persuasão",
-      "Gestão de Equipe",
-      "Processos e Automatização",
-      "Escalando Seu Negócio",
+      {
+        title: "Identificando os 4 Sinais Claros de Prontidão da Criança",
+        content:
+          "O desfralde antes do momento certo gera frustração para os pais e traumas para a criança. Antes de tirar a fralda, verifique:\n\n1. A criança avisa quando fez xixi ou cocô?\n2. A fralda permanece seca por períodos de 2 horas seguidas?\n3. Ela se incomoda com a fralda suja e pede para trocar?\n4. Consegue abaixar e levantar a bermudinha sozinha?",
+      },
+      {
+        title: "A Preparação do Ambiente: Troninho vs. Redutor de Assento",
+        content:
+          "Deixe o troninho acessível e visível. Permita que a criança explore e se sinta segura com os pés apoiados no chão para ter firmeza anatômica ao evacuar.",
+      },
+      {
+        title: "Cronograma dos 7 Dias Passo a Passo",
+        content:
+          "Dias 1 e 2: Conscientização e brincadeiras com bonecos.\nDias 3 e 4: Cuequinhas/calcinhas de transição durante o dia.\nDias 5 e 6: Idas regulares ao banheiro a cada 40 minutos com reforço positivo.\nDia 7: Consolidação do hábito e celebração da conquista.",
+      },
+      {
+        title: "O Que Fazer Quando Ocorrem Escapes (Sem Broncas)",
+        content:
+          "Escapes fazem parte do processo neurológico de aprendizado. Limpe com naturalidade e diga com calma: 'Não tem problema, amor! Da próxima vez você vai sentir a vontade antes e vamos juntos ao banheiro!'",
+      },
     ],
-    subtopics: {},
   },
-  produtividade: {
+  "orderbump-sucos": {
+    title: "Combo Bônus: 30 Sucos Detox Anti-Inchaço",
+    subtitle: "O complemento ideal para turbinar seus resultados e limpar o organismo em 48 horas",
+    role: "orderbump",
+    suggestedPrice: 14.9,
+    badgeText: "ORDER BUMP PERFEITO ⚡",
+    coverColor1: "#14532d",
+    coverColor2: "#22c55e",
+    coverTextColor: "#ffffff",
     chapters: [
-      "Mindset de Alta Performance",
-      "Gestão do Tempo na Prática",
-      "Métodos de Produtividade (Pomodoro, GTD, etc.)",
-      "Ferramentas Essenciais",
-      "Eliminando Distrações",
-      "Delegação Inteligente",
-      "Energia vs. Tempo",
-      "Revisão e Melhoria Contínua",
+      {
+        title: "Sucos Verdes de Ação Rápida em Jejum",
+        content:
+          "Combine couve crua, maçã verde, suco de 1 limão e 1 rodela de gengibre com água de coco gelada. Beba sem coar para preservar as fibras ativas.",
+      },
+      {
+        title: "Sucos Vermelhos Antioxidantes da Tarde",
+        content:
+          "Bata morangos frescos, beterraba crua ralada e raspas de limão. Excelente para oxigenação sanguínea e disposição para o dia a dia.",
+      },
     ],
-    subtopics: {},
   },
-};
-
-const TEMPLATES: Record<string, string[]> = {
-  "Guia Completo": ["Introdução", "Fundamentos", "Estratégias Básicas", "Estratégias Avançadas", "Ferramentas Recomendadas", "Estudos de Caso", "Plano de Ação", "Conclusão e Próximos Passos"],
-  "Checklist": ["Visão Geral", "Fase 1: Preparação", "Fase 2: Execução", "Fase 3: Otimização", "Fase 4: Manutenção", "Checklist Final"],
-  "Passo a Passo": ["Antes de Começar", "Passo 1: Planejamento", "Passo 2: Configuração", "Passo 3: Implementação", "Passo 4: Teste e Validação", "Passo 5: Lançamento", "Passo 6: Análise de Resultados", "Próximos Passos"],
-  "Case Studies": ["Introdução e Metodologia", "Caso 1: Do Zero ao Resultado", "Caso 2: Superando Obstáculos", "Caso 3: Crescimento Exponencial", "Lições Aprendidas", "Como Aplicar no Seu Negócio"],
 };
 
 export default function EbookTool() {
-  const [ebooks, setEbooks] = useState<Ebook[]>([]);
-  const [current, setCurrent] = useState<Ebook | null>(null);
-  const [editingChapter, setEditingChapter] = useState<string | null>(null);
-  const [mainTab, setMainTab] = useState("info");
-
-  useEffect(() => {
+  const [ebooks, setEbooks] = useState<Ebook[]>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) setEbooks(JSON.parse(saved));
-    } catch { /* ignore */ }
-  }, []);
+      if (saved) return JSON.parse(saved);
+    } catch {
+      // ignore
+    }
+    return [
+      {
+        id: "demo-1",
+        ...LOW_TICKET_PRESETS["emagrecimento-chas"],
+        createdAt: new Date().toISOString(),
+      },
+    ];
+  });
+
+  const [current, setCurrent] = useState<Ebook | null>(null);
+  const [mainTab, setMainTab] = useState("info");
+  const [editingChapter, setEditingChapter] = useState<string | null>(null);
+  const [selectedPreset, setSelectedPreset] = useState("emagrecimento-chas");
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(ebooks));
+  }, [ebooks]);
 
   const persist = (list: Ebook[]) => {
     setEbooks(list);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
   };
 
-  const createEbook = (template?: string) => {
-    const chapters: Chapter[] = template && TEMPLATES[template]
-      ? TEMPLATES[template].map((t) => ({ id: uid(), title: t, content: "" }))
-      : [];
+  const createFromPreset = (key: string) => {
+    const preset = LOW_TICKET_PRESETS[key];
+    if (!preset) return;
     const ebook: Ebook = {
       id: uid(),
-      title: "Novo E-book",
-      subtitle: "",
-      author: "",
-      topic: "",
-      coverColor1: "#1e293b",
-      coverColor2: "#3b82f6",
-      coverTextColor: "#ffffff",
-      chapters,
-      template: template || "",
+      title: preset.title,
+      subtitle: preset.subtitle,
+      author: "Especialista Mony Ads",
+      niche: key,
+      role: preset.role,
+      suggestedPrice: preset.suggestedPrice,
+      badgeText: preset.badgeText,
+      coverColor1: preset.coverColor1,
+      coverColor2: preset.coverColor2,
+      coverTextColor: preset.coverTextColor,
+      chapters: preset.chapters.map((ch) => ({ id: uid(), ...ch })),
       createdAt: new Date().toISOString(),
     };
-    persist([...ebooks, ebook]);
+    persist([ebook, ...ebooks]);
     setCurrent(ebook);
-    toast.success("E-book criado!");
+    toast.success("E-book de Low Ticket gerado com capítulos completos!");
+  };
+
+  const createBlankEbook = () => {
+    const ebook: Ebook = {
+      id: uid(),
+      title: "Meu E-book de Alta Conversão",
+      subtitle: "Subtítulo atraente com benefício claro e prazo",
+      author: "Seu Nome ou Marca",
+      niche: "Geral",
+      role: "frontend",
+      suggestedPrice: 19.9,
+      badgeText: "NOVA OFERTA 🚀",
+      coverColor1: "#1e293b",
+      coverColor2: "#0284c7",
+      coverTextColor: "#ffffff",
+      chapters: [
+        { id: uid(), title: "Introdução ao Método", content: "Escreva aqui a introdução envolvente..." },
+        { id: uid(), title: "O Passo a Passo Prático", content: "Escreva aqui o passo a passo..." },
+      ],
+      createdAt: new Date().toISOString(),
+    };
+    persist([ebook, ...ebooks]);
+    setCurrent(ebook);
+    toast.success("E-book em branco criado!");
   };
 
   const saveCurrent = () => {
     if (!current) return;
     persist(ebooks.map((e) => (e.id === current.id ? current : e)));
-    toast.success("E-book salvo!");
+    toast.success("E-book salvo com sucesso!");
   };
 
   const deleteEbook = (id: string) => {
     persist(ebooks.filter((e) => e.id !== id));
     if (current?.id === id) setCurrent(null);
-    toast.success("E-book excluído!");
+    toast.success("E-book removido.");
   };
 
   const addChapter = () => {
     if (!current) return;
-    const ch: Chapter = { id: uid(), title: `Capítulo ${current.chapters.length + 1}`, content: "" };
+    const ch: Chapter = {
+      id: uid(),
+      title: `Capítulo ${current.chapters.length + 1}: Novo Capítulo`,
+      content: "Escreva o conteúdo detalhado deste capítulo aqui...",
+    };
     setCurrent({ ...current, chapters: [...current.chapters, ch] });
+    setEditingChapter(ch.id);
   };
 
   const updateChapter = (cid: string, patch: Partial<Chapter>) => {
     if (!current) return;
-    setCurrent({ ...current, chapters: current.chapters.map((c) => (c.id === cid ? { ...c, ...patch } : c)) });
+    setCurrent({
+      ...current,
+      chapters: current.chapters.map((c) => (c.id === cid ? { ...c, ...patch } : c)),
+    });
   };
 
   const removeChapter = (cid: string) => {
     if (!current) return;
-    setCurrent({ ...current, chapters: current.chapters.filter((c) => c.id !== cid) });
+    setCurrent({
+      ...current,
+      chapters: current.chapters.filter((c) => c.id !== cid),
+    });
     if (editingChapter === cid) setEditingChapter(null);
   };
 
@@ -202,304 +365,705 @@ export default function EbookTool() {
     setCurrent({ ...current, chapters: arr });
   };
 
-  const applySuggestions = () => {
-    if (!current || !current.topic) { toast.error("Selecione um nicho primeiro"); return; }
-    const niche = Object.keys(NICHE_SUGGESTIONS).find((k) => current.topic.toLowerCase().includes(k));
-    if (!niche) { toast.error("Nenhuma sugestão disponível para este nicho. Tente: marketing, finanças, saúde, negócios, produtividade"); return; }
-    const suggestions = NICHE_SUGGESTIONS[niche];
-    const newChapters: Chapter[] = suggestions.chapters.map((title) => ({
-      id: uid(),
-      title,
-      content: suggestions.subtopics[title] || "",
-    }));
-    setCurrent({ ...current, chapters: newChapters });
-    toast.success(`${newChapters.length} capítulos sugeridos adicionados!`);
-  };
+  const wordCount = useMemo(() => {
+    if (!current) return 0;
+    return current.chapters.reduce(
+      (sum, ch) => sum + ch.content.split(/\s+/).filter(Boolean).length,
+      0
+    );
+  }, [current]);
 
-  const exportText = () => {
+  const readingTimeMinutes = useMemo(() => {
+    return Math.max(1, Math.round(wordCount / 180));
+  }, [wordCount]);
+
+  // Exportar como Texto Formatado
+  const exportAsText = () => {
     if (!current) return;
     const lines: string[] = [];
     lines.push("=".repeat(50));
     lines.push(current.title.toUpperCase());
     if (current.subtitle) lines.push(current.subtitle);
-    if (current.author) lines.push(`Por ${current.author}`);
+    if (current.author) lines.push(`Por: ${current.author}`);
+    lines.push(`Papel no Funil: ${current.role.toUpperCase()} (Preço sugerido: R$ ${current.suggestedPrice.toFixed(2)})`);
     lines.push("=".repeat(50));
     lines.push("");
-    lines.push("SUMÁRIO");
+    lines.push("SUMÁRIO DO E-BOOK");
     lines.push("-".repeat(30));
     current.chapters.forEach((ch, i) => {
       lines.push(`${i + 1}. ${ch.title}`);
     });
     lines.push("");
     current.chapters.forEach((ch, i) => {
-      lines.push("");
       lines.push("=".repeat(50));
       lines.push(`CAPÍTULO ${i + 1}: ${ch.title.toUpperCase()}`);
       lines.push("=".repeat(50));
       lines.push("");
       lines.push(ch.content || "[Conteúdo não preenchido]");
+      lines.push("");
     });
-    lines.push("");
     lines.push("=".repeat(50));
-    lines.push("Gerado por Mony Ads");
+    lines.push("Gerado com Mony Ads — Plataforma Especializada em Low Ticket");
     lines.push("=".repeat(50));
+
     navigator.clipboard.writeText(lines.join("\n"));
-    toast.success("Texto do e-book copiado!");
+    toast.success("Texto completo do e-book copiado!");
   };
 
-  const [selectedTemplate, setSelectedTemplate] = useState("");
-  const wordCount = current ? current.chapters.reduce((sum, ch) => sum + ch.content.split(/\s+/).filter(Boolean).length, 0) : 0;
+  // Gerar Copy de Pitch para o Facebook Ads
+  const copyFacebookAdPitch = () => {
+    if (!current) return;
+    const pitch = `🔥 [ATENÇÃO] Finalmente revelado: como ter acesso ao "${current.title}"!
+
+Se você sofre com a falta de tempo e métodos complicados, este guia prático foi feito para você.
+
+✅ O que você vai aprender no material:
+${current.chapters.map((c, i) => `👉 ${i + 1}. ${c.title}`).join("\n")}
+
+⚠️ Oferta exclusiva de lançamento por apenas R$ ${current.suggestedPrice.toFixed(2)} (Acesso Imediato no seu e-mail).
+
+👇 Toque no botão 'Saiba Mais' abaixo e garanta sua cópia com valor promocional antes que o preço suba!`;
+
+    navigator.clipboard.writeText(pitch);
+    toast.success("Copy de anúncio para o Facebook Ads copiada!");
+  };
+
+  // Baixar Arquivo HTML Formatado para Leitura ou PDF
+  const downloadHtmlFile = () => {
+    if (!current) return;
+    const html = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>${current.title}</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.7; color: #1e293b; max-width: 750px; margin: 40px auto; padding: 0 20px; }
+    .cover { background: linear-gradient(135deg, ${current.coverColor1}, ${current.coverColor2}); color: ${current.coverTextColor}; padding: 60px 40px; border-radius: 16px; text-align: center; margin-bottom: 50px; }
+    h1 { font-size: 32px; margin-bottom: 12px; }
+    .subtitle { font-size: 18px; opacity: 0.9; margin-bottom: 24px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; margin-bottom: 16px; }
+    .author { font-size: 14px; opacity: 0.8; }
+    .toc { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; margin-bottom: 50px; }
+    .toc h2 { margin-top: 0; font-size: 20px; }
+    .toc ol { padding-left: 20px; }
+    .chapter { margin-bottom: 50px; page-break-after: always; }
+    .chapter h2 { font-size: 24px; color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 16px; }
+    p { margin-bottom: 16px; white-space: pre-line; }
+    @media print { .cover { page-break-after: always; } }
+  </style>
+</head>
+<body>
+  <div class="cover">
+    <div class="badge">${current.badgeText}</div>
+    <h1>${current.title}</h1>
+    <div class="subtitle">${current.subtitle}</div>
+    <div class="author">Por ${current.author}</div>
+  </div>
+
+  <div class="toc">
+    <h2>Sumário</h2>
+    <ol>
+      ${current.chapters.map((c) => `<li>${c.title}</li>`).join("")}
+    </ol>
+  </div>
+
+  ${current.chapters
+    .map(
+      (c, i) => `
+    <div class="chapter">
+      <h2>Capítulo ${i + 1}: ${c.title}</h2>
+      <p>${c.content}</p>
+    </div>
+  `
+    )
+    .join("")}
+</body>
+</html>`;
+
+    const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${current.title.toLowerCase().replace(/\s+/g, "-")}.html`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Arquivo HTML baixado! Abra no navegador e use Ctrl+P para salvar em PDF.");
+  };
 
   return (
     <div className="space-y-6">
-      <div className="rounded-2xl border border-border bg-card/60 p-6">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h2 className="text-xl font-bold">Gerador de E-books</h2>
-            <p className="text-sm text-muted-foreground">Crie e-books profissionais para usar como isca digital</p>
+      {/* Banner Principal */}
+      <div className="rounded-2xl border border-primary/40 bg-gradient-to-r from-primary/10 via-card/80 to-accent/10 p-5 shadow-sm">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <Badge className="bg-primary text-primary-foreground font-semibold px-2.5 py-0.5">
+                CRIADOR DE PRODUTOS DIGITAIS
+              </Badge>
+              <Badge variant="outline" className="border-accent text-accent">
+                Front-End · Order Bump · Upsell
+              </Badge>
+            </div>
+            <h2 className="text-2xl font-bold tracking-tight">Gerador de E-books Low Ticket</h2>
+            <p className="text-sm text-muted-foreground">
+              Crie em minutos produtos digitais prontos para vender por R$ 19 a R$ 47 ou usar como Order Bumps de alta conversão.
+            </p>
           </div>
+
           {current && (
-            <div className="flex gap-2">
+            <div className="flex flex-wrap items-center gap-2 shrink-0">
               <Button size="sm" variant="outline" onClick={saveCurrent}>
-                <Save className="w-4 h-4 mr-1" /> Salvar
+                <Save className="w-4 h-4 mr-1.5" /> Salvar
               </Button>
-              <Button size="sm" variant="outline" onClick={exportText}>
-                <FileDown className="w-4 h-4 mr-1" /> Exportar Texto
+              <Button size="sm" variant="outline" onClick={exportAsText}>
+                <Copy className="w-4 h-4 mr-1.5" /> Copiar Texto
+              </Button>
+              <Button size="sm" className="bg-gradient-brand shadow-glow" onClick={downloadHtmlFile}>
+                <Download className="w-4 h-4 mr-1.5" /> Baixar HTML/PDF
               </Button>
             </div>
           )}
         </div>
+      </div>
 
-        {!current ? (
-          <div className="space-y-6">
-            <div className="rounded-2xl border border-border bg-card/60 p-6">
-              <h3 className="font-semibold mb-3">Criar Novo E-book</h3>
-              <div className="flex gap-3 items-end flex-wrap">
-                <div className="w-[220px]">
-                  <Label>Template</Label>
-                  <Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
-                    <SelectTrigger><SelectValue placeholder="Escolher template" /></SelectTrigger>
-                    <SelectContent>
-                      {Object.keys(TEMPLATES).map((t) => (
-                        <SelectItem key={t} value={t}>{t}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <Button onClick={() => { createEbook(selectedTemplate || undefined); setSelectedTemplate(""); }}>
-                  <Plus className="w-4 h-4 mr-1" /> Criar E-book
-                </Button>
+      {!current ? (
+        <div className="space-y-6">
+          {/* Seção de Criação com Presets de Nichos Vencedores */}
+          <div className="rounded-2xl border border-border bg-card/60 p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-bold">Modelos Prontos de Alta Margem (Nichos Validados)</h3>
+                <p className="text-xs text-muted-foreground">
+                  Selecione um modelo com estrutura e capítulos já redigidos para começar rápido:
+                </p>
               </div>
+              <Button variant="outline" size="sm" onClick={createBlankEbook}>
+                <Plus className="w-4 h-4 mr-1.5" /> Criar em Branco
+              </Button>
             </div>
 
-            {ebooks.length > 0 && (
-              <div className="rounded-2xl border border-border bg-card/60 p-6">
-                <h3 className="font-semibold mb-3 flex items-center gap-2"><FolderOpen className="w-4 h-4" /> E-books Salvos</h3>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {ebooks.map((e) => (
-                    <div key={e.id} className="flex items-center justify-between p-3 rounded-lg border border-border bg-background">
-                      <div>
-                        <p className="font-medium">{e.title}</p>
-                        <p className="text-xs text-muted-foreground">{e.chapters.length} capítulos • {new Date(e.createdAt).toLocaleDateString("pt-BR")}</p>
-                      </div>
-                      <div className="flex gap-1">
-                        <Button size="sm" variant="ghost" onClick={() => setCurrent(e)}>Abrir</Button>
-                        <Button size="sm" variant="ghost" className="text-red-500" onClick={() => deleteEbook(e.id)}><Trash2 className="w-4 h-4" /></Button>
-                      </div>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {Object.entries(LOW_TICKET_PRESETS).map(([key, preset]) => (
+                <div
+                  key={key}
+                  className="rounded-xl border border-border/80 bg-background/50 p-4 flex flex-col justify-between hover:border-primary/50 transition-all cursor-pointer group"
+                  onClick={() => createFromPreset(key)}
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Badge variant="outline" className="text-[10px]">
+                        {preset.badgeText}
+                      </Badge>
+                      <span className="text-xs font-bold text-green-400">
+                        R$ {preset.suggestedPrice.toFixed(2)}
+                      </span>
                     </div>
-                  ))}
+                    <h4 className="font-bold text-sm text-foreground group-hover:text-primary transition-colors">
+                      {preset.title}
+                    </h4>
+                    <p className="text-xs text-muted-foreground line-clamp-2">
+                      {preset.subtitle}
+                    </p>
+                  </div>
+
+                  <div className="pt-3 mt-3 border-t border-border/40 flex items-center justify-between text-[11px] text-muted-foreground">
+                    <span>{preset.chapters.length} capítulos</span>
+                    <span className="text-primary font-medium flex items-center gap-1">
+                      Usar este modelo →
+                    </span>
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div>
-            <div className="flex items-center gap-3 mb-4">
-              <Button size="sm" variant="ghost" onClick={() => { saveCurrent(); setCurrent(null); }}>← Voltar</Button>
-              <Badge variant="secondary">{current.chapters.length} capítulos</Badge>
-              <Badge variant="outline">{wordCount.toLocaleString("pt-BR")} palavras</Badge>
+              ))}
             </div>
+          </div>
 
-            <Tabs value={mainTab} onValueChange={setMainTab}>
-              <TabsList>
-                <TabsTrigger value="info">Informações</TabsTrigger>
-                <TabsTrigger value="chapters"><BookOpen className="w-4 h-4 mr-1" /> Capítulos</TabsTrigger>
-                <TabsTrigger value="cover"><Palette className="w-4 h-4 mr-1" /> Capa</TabsTrigger>
-                <TabsTrigger value="preview"><Eye className="w-4 h-4 mr-1" /> Preview</TabsTrigger>
-              </TabsList>
+          {/* Lista de E-books Salvos */}
+          {ebooks.length > 0 && (
+            <div className="rounded-2xl border border-border bg-card/60 p-6">
+              <h3 className="font-bold text-base mb-4 flex items-center gap-2">
+                <FolderOpen className="w-4 h-4 text-primary" /> Meus E-books Salvos ({ebooks.length})
+              </h3>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {ebooks.map((e) => (
+                  <div
+                    key={e.id}
+                    className="flex flex-col justify-between p-4 rounded-xl border border-border bg-background/60 hover:border-border transition-all"
+                  >
+                    <div className="space-y-1 mb-3">
+                      <div className="flex items-center justify-between">
+                        <Badge variant="secondary" className="text-[10px]">
+                          {e.badgeText || "E-book"}
+                        </Badge>
+                        <span className="text-xs font-semibold text-primary">
+                          R$ {e.suggestedPrice ? e.suggestedPrice.toFixed(2) : "19.90"}
+                        </span>
+                      </div>
+                      <p className="font-bold text-sm text-foreground line-clamp-1">{e.title}</p>
+                      <p className="text-xs text-muted-foreground line-clamp-1">
+                        {e.chapters.length} capítulos • {e.author || "Sem autor"}
+                      </p>
+                    </div>
 
-              <TabsContent value="info" className="mt-4 space-y-4">
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div>
-                    <Label>Título</Label>
-                    <Input value={current.title} onChange={(e) => setCurrent({ ...current, title: e.target.value })} placeholder="Título do e-book" />
-                  </div>
-                  <div>
-                    <Label>Subtítulo</Label>
-                    <Input value={current.subtitle} onChange={(e) => setCurrent({ ...current, subtitle: e.target.value })} placeholder="Subtítulo" />
-                  </div>
-                  <div>
-                    <Label>Autor</Label>
-                    <Input value={current.author} onChange={(e) => setCurrent({ ...current, author: e.target.value })} placeholder="Nome do autor" />
-                  </div>
-                  <div>
-                    <Label>Nicho / Tópico</Label>
-                    <div className="flex gap-2">
-                      <Input value={current.topic} onChange={(e) => setCurrent({ ...current, topic: e.target.value })} placeholder="Ex: marketing, finanças, saúde..." className="flex-1" />
-                      <Button variant="outline" onClick={applySuggestions} title="Gerar sugestões de capítulos">
-                        <Sparkles className="w-4 h-4" />
+                    <div className="flex gap-2 pt-2 border-t border-border/40">
+                      <Button
+                        size="sm"
+                        className="flex-1 text-xs bg-gradient-brand"
+                        onClick={() => setCurrent(e)}
+                      >
+                        Abrir Editor
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-red-400 hover:text-red-300 px-2"
+                        onClick={() => deleteEbook(e.id)}
+                        title="Excluir e-book"
+                      >
+                        <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
                   </div>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  💡 Nichos com sugestões automáticas: marketing, finanças, saúde, negócios, produtividade
-                </p>
-              </TabsContent>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      ) : (
+        /* Modo Edição */
+        <div className="space-y-4">
+          {/* Top Bar do Editor */}
+          <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-xl border border-border bg-card/60">
+            <div className="flex items-center gap-3">
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => {
+                  saveCurrent();
+                  setCurrent(null);
+                }}
+              >
+                ← Voltar aos Projetos
+              </Button>
+              <Separator orientation="vertical" className="h-4" />
+              <div className="flex items-center gap-2">
+                <Badge variant="secondary" className="text-xs">
+                  {current.chapters.length} capítulos
+                </Badge>
+                <Badge variant="outline" className="text-xs">
+                  {wordCount.toLocaleString("pt-BR")} palavras (~{readingTimeMinutes} min de leitura)
+                </Badge>
+                <Badge className="bg-green-500/15 text-green-400 border border-green-500/30 text-xs">
+                  Preço Sugerido: R$ {current.suggestedPrice.toFixed(2)}
+                </Badge>
+              </div>
+            </div>
 
-              <TabsContent value="chapters" className="mt-4 space-y-4">
-                <ScrollArea className="h-[420px] pr-2">
+            <div className="flex items-center gap-2">
+              <Button size="sm" variant="secondary" onClick={copyFacebookAdPitch}>
+                <Megaphone className="w-3.5 h-3.5 mr-1 text-accent" /> Copiar Pitch para Facebook
+              </Button>
+            </div>
+          </div>
+
+          {/* Abas do Editor */}
+          <Tabs value={mainTab} onValueChange={setMainTab}>
+            <TabsList className="bg-card/60 border border-border">
+              <TabsTrigger value="info">Informações & Preço</TabsTrigger>
+              <TabsTrigger value="chapters">
+                <BookOpen className="w-3.5 h-3.5 mr-1.5" /> Capítulos & Conteúdo
+              </TabsTrigger>
+              <TabsTrigger value="cover">
+                <Palette className="w-3.5 h-3.5 mr-1.5" /> Capa 3D
+              </TabsTrigger>
+              <TabsTrigger value="preview">
+                <Eye className="w-3.5 h-3.5 mr-1.5" /> Pré-Visualização
+              </TabsTrigger>
+            </TabsList>
+
+            {/* Aba Informações & Preço */}
+            <TabsContent value="info" className="mt-4">
+              <div className="rounded-2xl border border-border bg-card/60 p-6 space-y-4">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-1.5">
+                    <Label>Título Principal do E-book *</Label>
+                    <Input
+                      value={current.title}
+                      onChange={(e) => setCurrent({ ...current, title: e.target.value })}
+                      placeholder="Ex: Manual das Marmitas Fit Lucrativas"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Subtítulo de Impacto (Promessa + Prazo) *</Label>
+                    <Input
+                      value={current.subtitle}
+                      onChange={(e) => setCurrent({ ...current, subtitle: e.target.value })}
+                      placeholder="Ex: Como faturar R$ 3.000 no primeiro mês"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Nome do Autor / Especialista</Label>
+                    <Input
+                      value={current.author}
+                      onChange={(e) => setCurrent({ ...current, author: e.target.value })}
+                      placeholder="Ex: Dra. Mariana Costa ou Equipe Marmita Pro"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Selo / Destaque de Capa</Label>
+                    <Input
+                      value={current.badgeText}
+                      onChange={(e) => setCurrent({ ...current, badgeText: e.target.value })}
+                      placeholder="Ex: EDIÇÃO 2026 · MÉTODO PRÁTICO"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2 pt-3 border-t border-border/50">
+                  <div className="space-y-1.5">
+                    <Label>Papel no Funil Low Ticket</Label>
+                    <Select
+                      value={current.role}
+                      onValueChange={(v: LowTicketRole) => setCurrent({ ...current, role: v })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="frontend">Produto Front-End (R$ 19 - R$ 37)</SelectItem>
+                        <SelectItem value="orderbump">Order Bump no Checkout (+R$ 14,90 - R$ 19,90)</SelectItem>
+                        <SelectItem value="upsell">Upsell de 1 Clique (+R$ 47 - R$ 67)</SelectItem>
+                        <SelectItem value="leadmagnet">Isca Digital Gratuita (Captação de Leads)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label>Preço Sugerido de Venda (R$)</Label>
+                    <Input
+                      type="number"
+                      step="0.1"
+                      value={current.suggestedPrice}
+                      onChange={(e) =>
+                        setCurrent({
+                          ...current,
+                          suggestedPrice: parseFloat(e.target.value) || 19.9,
+                        })
+                      }
+                    />
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 text-xs text-muted-foreground flex items-center gap-3">
+                  <Sparkles className="w-5 h-5 text-primary shrink-0" />
+                  <span>
+                    <b>Dica Estratégica:</b> E-books de <b>R$ 19,90</b> a <b>R$ 27,00</b> com Order Bump de <b>R$ 14,90</b> atingem as maiores taxas de conversão no Facebook Ads para tráfego direto.
+                  </span>
+                </div>
+              </div>
+            </TabsContent>
+
+            {/* Aba Capítulos & Conteúdo */}
+            <TabsContent value="chapters" className="mt-4">
+              <div className="rounded-2xl border border-border bg-card/60 p-6 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-bold text-base">Conteúdo dos Capítulos</h3>
+                    <p className="text-xs text-muted-foreground">
+                      Organize, reordene e escreva os capítulos do seu e-book.
+                    </p>
+                  </div>
+                  <Button size="sm" onClick={addChapter} className="bg-gradient-brand">
+                    <Plus className="w-4 h-4 mr-1.5" /> Adicionar Capítulo
+                  </Button>
+                </div>
+
+                <ScrollArea className="h-[480px] pr-3">
                   <div className="space-y-3">
                     {current.chapters.map((ch, idx) => (
-                      <div key={ch.id} className="rounded-lg border border-border bg-background p-4">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center gap-2">
-                            <Badge variant="secondary" className="text-xs">Cap. {idx + 1}</Badge>
-                            <Input value={ch.title} onChange={(e) => updateChapter(ch.id, { title: e.target.value })} className="h-8 text-sm font-medium max-w-xs" />
+                      <div
+                        key={ch.id}
+                        className="rounded-xl border border-border bg-background/60 p-4 transition-all"
+                      >
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-2">
+                          <div className="flex items-center gap-2 flex-1">
+                            <Badge variant="secondary" className="text-xs shrink-0">
+                              Capítulo {idx + 1}
+                            </Badge>
+                            <Input
+                              value={ch.title}
+                              onChange={(e) => updateChapter(ch.id, { title: e.target.value })}
+                              className="h-8 text-sm font-semibold max-w-md bg-transparent"
+                            />
                           </div>
-                          <div className="flex gap-1">
-                            <Button size="sm" variant="ghost" onClick={() => moveChapter(idx, -1)} disabled={idx === 0}><ArrowUp className="w-4 h-4" /></Button>
-                            <Button size="sm" variant="ghost" onClick={() => moveChapter(idx, 1)} disabled={idx === current.chapters.length - 1}><ArrowDown className="w-4 h-4" /></Button>
-                            <Button size="sm" variant="ghost" onClick={() => setEditingChapter(editingChapter === ch.id ? null : ch.id)}>
-                              {editingChapter === ch.id ? "Fechar" : "Editar"}
+
+                          <div className="flex items-center gap-1 shrink-0">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => moveChapter(idx, -1)}
+                              disabled={idx === 0}
+                              title="Mover para cima"
+                            >
+                              <ArrowUp className="w-3.5 h-3.5" />
                             </Button>
-                            <Button size="sm" variant="ghost" className="text-red-500" onClick={() => removeChapter(ch.id)}><Trash2 className="w-4 h-4" /></Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => moveChapter(idx, 1)}
+                              disabled={idx === current.chapters.length - 1}
+                              title="Mover para baixo"
+                            >
+                              <ArrowDown className="w-3.5 h-3.5" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant={editingChapter === ch.id ? "default" : "outline"}
+                              onClick={() =>
+                                setEditingChapter(editingChapter === ch.id ? null : ch.id)
+                              }
+                            >
+                              {editingChapter === ch.id ? "Recolher" : "Editar Conteúdo"}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="text-red-400 hover:text-red-300"
+                              onClick={() => removeChapter(ch.id)}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
                           </div>
                         </div>
+
                         {editingChapter === ch.id && (
-                          <div className="mt-3 pt-3 border-t border-border">
+                          <div className="mt-3 pt-3 border-t border-border/50 space-y-2">
                             <Textarea
                               value={ch.content}
                               onChange={(e) => updateChapter(ch.id, { content: e.target.value })}
-                              placeholder="Escreva o conteúdo deste capítulo..."
+                              placeholder="Escreva aqui o conteúdo deste capítulo..."
                               rows={10}
-                              className="font-mono text-sm"
+                              className="text-sm font-sans leading-relaxed bg-background"
                             />
-                            <p className="text-xs text-muted-foreground mt-1">
-                              {ch.content.split(/\s+/).filter(Boolean).length} palavras
-                            </p>
+                            <div className="flex items-center justify-between text-xs text-muted-foreground">
+                              <span>
+                                {ch.content.split(/\s+/).filter(Boolean).length} palavras
+                              </span>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-6 text-xs text-primary"
+                                onClick={() => setEditingChapter(null)}
+                              >
+                                Concluir Edição
+                              </Button>
+                            </div>
                           </div>
                         )}
                       </div>
                     ))}
-                    {current.chapters.length === 0 && (
-                      <p className="text-center text-muted-foreground py-8">
-                        Adicione capítulos ou use as sugestões automáticas na aba Informações
-                      </p>
-                    )}
                   </div>
                 </ScrollArea>
-                <Button onClick={addChapter}><Plus className="w-4 h-4 mr-1" /> Adicionar Capítulo</Button>
-              </TabsContent>
+              </div>
+            </TabsContent>
 
-              <TabsContent value="cover" className="mt-4 space-y-4">
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div>
-                    <Label>Cor Primária</Label>
-                    <div className="flex gap-2 items-center">
-                      <input type="color" value={current.coverColor1} onChange={(e) => setCurrent({ ...current, coverColor1: e.target.value })} className="w-10 h-8 rounded cursor-pointer" />
-                      <Input value={current.coverColor1} onChange={(e) => setCurrent({ ...current, coverColor1: e.target.value })} />
-                    </div>
-                  </div>
-                  <div>
-                    <Label>Cor Secundária</Label>
-                    <div className="flex gap-2 items-center">
-                      <input type="color" value={current.coverColor2} onChange={(e) => setCurrent({ ...current, coverColor2: e.target.value })} className="w-10 h-8 rounded cursor-pointer" />
-                      <Input value={current.coverColor2} onChange={(e) => setCurrent({ ...current, coverColor2: e.target.value })} />
-                    </div>
-                  </div>
-                  <div>
-                    <Label>Cor do Texto</Label>
-                    <div className="flex gap-2 items-center">
-                      <input type="color" value={current.coverTextColor} onChange={(e) => setCurrent({ ...current, coverTextColor: e.target.value })} className="w-10 h-8 rounded cursor-pointer" />
-                      <Input value={current.coverTextColor} onChange={(e) => setCurrent({ ...current, coverTextColor: e.target.value })} />
-                    </div>
-                  </div>
+            {/* Aba Capa 3D */}
+            <TabsContent value="cover" className="mt-4">
+              <div className="rounded-2xl border border-border bg-card/60 p-6 space-y-6">
+                <div>
+                  <h3 className="font-bold text-base">Capa do E-book & Mockup 3D</h3>
+                  <p className="text-xs text-muted-foreground">
+                    Personalize as cores e veja o mockup 3D do seu e-book em tempo real:
+                  </p>
                 </div>
-                <div className="flex justify-center mt-6">
-                  <div
-                    className="w-[280px] h-[400px] rounded-lg shadow-2xl flex flex-col items-center justify-center text-center p-8"
-                    style={{
-                      background: `linear-gradient(135deg, ${current.coverColor1}, ${current.coverColor2})`,
-                      color: current.coverTextColor,
-                    }}
-                  >
-                    <div className="flex-1 flex flex-col items-center justify-center">
-                      <h3 className="text-2xl font-bold mb-3 leading-tight">{current.title || "Título"}</h3>
-                      {current.subtitle && <p className="text-sm opacity-80 mb-4">{current.subtitle}</p>}
-                    </div>
-                    {current.author && (
-                      <p className="text-sm opacity-70 mt-auto">{current.author}</p>
-                    )}
-                  </div>
-                </div>
-              </TabsContent>
 
-              <TabsContent value="preview" className="mt-4">
-                <ScrollArea className="h-[500px] pr-2">
-                  <div className="max-w-2xl mx-auto">
-                    {/* Cover */}
+                <div className="grid gap-6 md:grid-cols-2 items-center">
+                  {/* Controles de Cores */}
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1.5">
+                        <Label>Cor de Fundo 1</Label>
+                        <div className="flex gap-2 items-center">
+                          <input
+                            type="color"
+                            value={current.coverColor1}
+                            onChange={(e) => setCurrent({ ...current, coverColor1: e.target.value })}
+                            className="w-9 h-9 rounded cursor-pointer border border-border"
+                          />
+                          <Input
+                            value={current.coverColor1}
+                            onChange={(e) => setCurrent({ ...current, coverColor1: e.target.value })}
+                            className="text-xs font-mono"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label>Cor de Fundo 2</Label>
+                        <div className="flex gap-2 items-center">
+                          <input
+                            type="color"
+                            value={current.coverColor2}
+                            onChange={(e) => setCurrent({ ...current, coverColor2: e.target.value })}
+                            className="w-9 h-9 rounded cursor-pointer border border-border"
+                          />
+                          <Input
+                            value={current.coverColor2}
+                            onChange={(e) => setCurrent({ ...current, coverColor2: e.target.value })}
+                            className="text-xs font-mono"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label>Cor do Texto</Label>
+                      <div className="flex gap-2 items-center">
+                        <input
+                          type="color"
+                          value={current.coverTextColor}
+                          onChange={(e) => setCurrent({ ...current, coverTextColor: e.target.value })}
+                          className="w-9 h-9 rounded cursor-pointer border border-border"
+                        />
+                        <Input
+                          value={current.coverTextColor}
+                          onChange={(e) => setCurrent({ ...current, coverTextColor: e.target.value })}
+                          className="text-xs font-mono"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Paletas Rápidas */}
+                    <div className="space-y-1.5 pt-2 border-t border-border/40">
+                      <Label className="text-xs text-muted-foreground">Paletas Rápidas Recomendadas:</Label>
+                      <div className="flex flex-wrap gap-2">
+                        {[
+                          { name: "Esmeralda", c1: "#065f46", c2: "#10b981", text: "#ffffff" },
+                          { name: "Laranja Fit", c1: "#9a3412", c2: "#f97316", text: "#ffffff" },
+                          { name: "Azul Real", c1: "#1e1b4b", c2: "#3b82f6", text: "#ffffff" },
+                          { name: "Vinho Gold", c1: "#4c0519", c2: "#be123c", text: "#ffffff" },
+                          { name: "Dark Modern", c1: "#0f172a", c2: "#334155", text: "#38bdf8" },
+                        ].map((p) => (
+                          <Button
+                            key={p.name}
+                            variant="outline"
+                            size="sm"
+                            className="text-xs h-7"
+                            onClick={() =>
+                              setCurrent({
+                                ...current,
+                                coverColor1: p.c1,
+                                coverColor2: p.c2,
+                                coverTextColor: p.text,
+                              })
+                            }
+                          >
+                            <span
+                              className="w-3 h-3 rounded-full mr-1.5 border border-white/20"
+                              style={{ background: `linear-gradient(135deg, ${p.c1}, ${p.c2})` }}
+                            />
+                            {p.name}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Mockup 3D com Efeito de Livro */}
+                  <div className="flex justify-center p-6 bg-muted/20 rounded-2xl border border-border/40">
                     <div
-                      className="w-full h-[300px] rounded-lg mb-8 flex flex-col items-center justify-center text-center p-8"
+                      className="relative w-[240px] h-[340px] rounded-r-xl shadow-2xl flex flex-col justify-between p-6 transition-transform hover:scale-105"
+                      style={{
+                        background: `linear-gradient(135deg, ${current.coverColor1}, ${current.coverColor2})`,
+                        color: current.coverTextColor,
+                        boxShadow: "10px 15px 35px rgba(0,0,0,0.45), inset 6px 0 10px rgba(0,0,0,0.3)",
+                        borderLeft: "6px solid rgba(255,255,255,0.15)",
+                      }}
+                    >
+                      {/* Selo no Topo */}
+                      <div className="text-center">
+                        <span className="inline-block px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider bg-black/30 border border-white/20">
+                          {current.badgeText || "MÉTODO COMPLETO"}
+                        </span>
+                      </div>
+
+                      {/* Título e Subtítulo Central */}
+                      <div className="my-auto text-center space-y-2">
+                        <h3 className="text-xl font-extrabold leading-tight tracking-tight drop-shadow-md">
+                          {current.title || "Título do E-book"}
+                        </h3>
+                        <p className="text-[11px] opacity-90 line-clamp-3 leading-snug">
+                          {current.subtitle || "Subtítulo atraente com a promessa principal"}
+                        </p>
+                      </div>
+
+                      {/* Autor na Base */}
+                      <div className="text-center pt-2 border-t border-white/20">
+                        <p className="text-[10px] font-semibold tracking-wide uppercase opacity-85">
+                          {current.author || "Nome do Autor"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+
+            {/* Aba Pré-Visualização */}
+            <TabsContent value="preview" className="mt-4">
+              <div className="rounded-2xl border border-border bg-card/60 p-6">
+                <ScrollArea className="h-[520px] pr-4">
+                  <div className="max-w-2xl mx-auto space-y-8">
+                    {/* Capa no Preview */}
+                    <div
+                      className="w-full rounded-2xl p-10 text-center space-y-3 shadow-lg"
                       style={{
                         background: `linear-gradient(135deg, ${current.coverColor1}, ${current.coverColor2})`,
                         color: current.coverTextColor,
                       }}
                     >
-                      <h1 className="text-3xl font-bold mb-3">{current.title}</h1>
-                      {current.subtitle && <p className="text-lg opacity-80">{current.subtitle}</p>}
-                      {current.author && <p className="mt-6 opacity-70">Por {current.author}</p>}
+                      <span className="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-black/25">
+                        {current.badgeText}
+                      </span>
+                      <h1 className="text-3xl font-extrabold">{current.title}</h1>
+                      <p className="text-sm opacity-90 max-w-lg mx-auto">{current.subtitle}</p>
+                      <p className="text-xs opacity-75 pt-4">Por {current.author}</p>
                     </div>
 
-                    {/* Table of Contents */}
-                    {current.chapters.length > 0 && (
-                      <div className="mb-8 p-6 rounded-lg bg-muted/50">
-                        <h2 className="text-xl font-bold mb-4">Sumário</h2>
+                    {/* Sumário */}
+                    <div className="rounded-xl border border-border bg-muted/40 p-5 space-y-3">
+                      <h3 className="font-bold text-base text-foreground">Sumário</h3>
+                      <div className="space-y-1.5 text-sm">
                         {current.chapters.map((ch, i) => (
-                          <p key={ch.id} className="py-1 text-sm">
-                            <span className="font-medium">{i + 1}.</span> {ch.title}
-                          </p>
+                          <div key={ch.id} className="flex items-center justify-between py-1 border-b border-border/30 last:border-0">
+                            <span className="text-muted-foreground">
+                              {i + 1}. <b className="text-foreground">{ch.title}</b>
+                            </span>
+                          </div>
                         ))}
                       </div>
-                    )}
+                    </div>
 
-                    {/* Chapters */}
+                    {/* Capítulos */}
                     {current.chapters.map((ch, i) => (
-                      <div key={ch.id} className="mb-8">
-                        <Separator className="mb-6" />
-                        <h2 className="text-xl font-bold mb-4">
-                          Capítulo {i + 1}: {ch.title}
-                        </h2>
-                        {ch.content ? (
-                          <div className="prose prose-sm max-w-none">
-                            {ch.content.split("\n").map((para, pi) => (
-                              <p key={pi} className="mb-3 text-muted-foreground leading-relaxed">
-                                {para}
-                              </p>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="text-muted-foreground italic text-sm">[Conteúdo não preenchido]</p>
-                        )}
+                      <div key={ch.id} className="space-y-3 pt-4 border-t border-border">
+                        <div className="space-y-1">
+                          <span className="text-xs uppercase font-bold text-primary tracking-wider">
+                            Capítulo {i + 1}
+                          </span>
+                          <h2 className="text-2xl font-bold text-foreground">{ch.title}</h2>
+                        </div>
+                        <div className="text-sm leading-relaxed text-muted-foreground whitespace-pre-line space-y-2">
+                          {ch.content}
+                        </div>
                       </div>
                     ))}
                   </div>
                 </ScrollArea>
-              </TabsContent>
-            </Tabs>
-          </div>
-        )}
-      </div>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
+      )}
     </div>
   );
 }

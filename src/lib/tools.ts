@@ -18,7 +18,7 @@ export const tools: Tool[] = [
   t("assistant", "Assistente de marketing", "Tire dúvidas e planeje com IA.", Bot, 0),
   t("pages", "Criador de páginas de vendas", "Monte páginas editáveis.", LayoutTemplate, 1),
   t("quiz", "Criador de quizzes", "Quizzes para captar e qualificar.", ListChecks, 1),
-  t("ebook", "Gerador de e-books", "Produtos digitais exportáveis.", BookOpen, 1),
+  t("ebook", "Gerador de e-books", "Crie produtos digitais e order bumps de alta conversão.", BookOpen, 1, "ready"),
   t("scripts", "Roteiros e áudios", "Roteiros para vídeos e VSLs.", Mic, 1),
   t("banners", "Criador de banners", "Banners para anúncios e páginas.", Image, 1),
   t("headlines", "Gerador de headlines", "Títulos que chamam atenção.", Type, 1),
